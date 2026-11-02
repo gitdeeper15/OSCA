@@ -1,0 +1,97 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "osca-engine"
+version = "1.0.0"
+description = "OSCA: Origin, Semantic, and Consequence Authority — A Multi-Tier Authorization Architecture for Autonomous AI Agents"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    {name = "Samir Baladi", email = "gitdeeper@gmail.com"},
+]
+maintainers = [
+    {name = "Samir Baladi", email = "gitdeeper@gmail.com"},
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Security",
+    "Topic :: Software Development :: Quality Assurance",
+]
+dependencies = [
+    "pydantic>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "black>=24.0.0",
+    "flake8>=7.0.0",
+    "mypy>=1.8.0",
+    "isort>=5.13.0",
+    "pre-commit>=3.6.0",
+]
+
+[project.urls]
+"Research Paper" = "RESEARCH_PAPER/"
+Documentation = "DOCS/"
+Repository = "."
+OSF = "https://doi.org/10.17605/OSF.IO/5EQC9"
+Figshare = "https://doi.org/10.6084/m9.figshare.34884411"
+
+[tool.setuptools]
+packages = ["core", "authority", "governance", "security"]
+
+[tool.setuptools.package-dir]
+core = "core"
+authority = "authority"
+governance = "governance"
+security = "security"
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra -q --strict-markers"
+testpaths = ["tests"]
+markers = [
+    "slow: marks tests as slow",
+    "integration: marks integration tests",
+]
+
+[tool.coverage.run]
+source = ["core", "authority", "governance", "security"]
+omit = ["*/tests/*", "*/test_*", "*/.venv/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if __name__ == .__main__.:",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "pass",
+]
+show_missing = true
+skip_covered = true

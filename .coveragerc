@@ -1,0 +1,30 @@
+# OSCA coverage configuration
+# Version: 0.1.0-research-draft
+
+[run]
+source = core,invariants
+omit =
+    */tests/*
+    */test_*
+    */__init__.py
+    */.venv/*
+branch = True
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    def __str__
+    if self.debug:
+    if __name__ == .__main__.:
+    raise AssertionError
+    raise NotImplementedError
+    pass
+    return NotImplemented
+    if TYPE_CHECKING:
+show_missing = True
+skip_covered = True
+precision = 2
+
+[html]
+directory = htmlcov

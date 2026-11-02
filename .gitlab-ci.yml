@@ -1,0 +1,168 @@
+# OSCA — GitLab CI/CD Pipeline
+# Version: 0.1.0-research-draft
+# Date: 2026-10-31
+#
+# This pipeline validates the project structure, runs the Python test suite,
+# and packages artifacts. No empirical data is processed.
+
+stages:
+  - validate
+  - test
+  - archive
+
+variables:
+  PYTHON_VERSION: "3.11"
+
+# Cache pip wheels across jobs
+cache:
+  key: "$CI_COMMIT_REF_SLUG"
+  paths:
+    - .cache/pip
+
+# ------------------------------------------------------------------
+# VALIDATE STAGE
+# ------------------------------------------------------------------
+
+validate:structure:
+  stage: validate
+  script:
+    - echo "Validating project structure..."
+    - test -f README.md || (echo "MISSING README.md" && exit 1)
+    - test -f VERSION || (echo "MISSING VERSION" && exit 1)
+    - test -f LICENSE || (echo "MISSING LICENSE" && exit 1)
+    - test -f CITATION.cff || (echo "MISSING CITATION.cff" && exit 1)
+    - test -f CHANGELOG.md || (echo "MISSING CHANGELOG.md" && exit 1)
+    - test -f AUTHORS.md || (echo "MISSING AUTHORS.md" && exit 1)
+    - test -f CONTRIBUTING.md || (echo "MISSING CONTRIBUTING.md" && exit 1)
+    - echo "Core files present."
+    - test -d core && echo "core/ present"
+    - test -d invariants && echo "invariants/ present"
+    - test -d sandbox && echo "sandbox/ present"
+    - test -d tests && echo "tests/ present"
+    - test -d docs && echo "docs/ present"
+  only:
+    - main
+    - merge_requests
+
+validate:version:
+  stage: validate
+  script:
+    - echo "Checking VERSION format..."
+    - |
+      V=$(cat VERSION)
+      if ! echo "$V" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+-(research-draft|implementation|pilot)$|^[0-9]+\.[0-9]+\.[0-9]+$'; then
+        echo "ERROR: VERSION '$V' does not match expected format.";
+        exit 1;
+      fi
+    - echo "VERSION OK: $(cat VERSION)"
+  only:
+    - main
+    - merge_requests
+
+validate:markdown:
+  stage: validate
+  image: node:20
+  script:
+    - npm install -g markdownlint-cli
+    - echo "Linting Markdown files (warnings only)..."
+    - markdownlint README.md --disable MD013 MD033 MD041 || true
+    - markdownlint CHANGELOG.md --disable MD013 MD033 MD041 || true
+    - markdownlint AUTHORS.md --disable MD013 MD033 MD041 || true
+    - markdownlint CONTRIBUTING.md --disable MD013 MD033 MD041 || true
+  allow_failure: true
+  only:
+    - main
+    - merge_requests
+
+validate:python-syntax:
+  stage: validate
+  image: python:3.11
+  script:
+    - python -m pip install --upgrade pip
+    - pip install flake8
+    - echo "Checking Python syntax..."
+    - find . -name "*.py" -not -path "./.git/*" -not -path "./.venv/*" | xargs -r flake8 --max-line-length=88 --extend-ignore=E203,W503 || true
+  allow_failure: true
+  only:
+    - main
+    - merge_requests
+
+# ------------------------------------------------------------------
+# TEST STAGE
+# ------------------------------------------------------------------
+
+test:unit:
+  stage: test
+  image: python:3.11
+  script:
+    - python -m pip install --upgrade pip
+    - pip install -e .[dev]
+    - echo "Running unit tests..."
+    - python -m pytest -v --cov=core --cov=invariants --cov=sandbox --cov-report=term-missing
+  artifacts:
+    when: always
+    paths:
+      - .coverage
+    expire_in: 30 days
+  only:
+    - main
+    - merge_requests
+
+test:lint:
+  stage: test
+  image: python:3.11
+  script:
+    - python -m pip install --upgrade pip
+    - pip install black isort flake8 mypy
+    - echo "Checking formatting..."
+    - black --check . || true
+    - echo "Checking imports..."
+    - isort --check-only . || true
+    - echo "Linting..."
+    - flake8 . || true
+    - echo "Type checking..."
+    - mypy core invariants sandbox || true
+  allow_failure: true
+  only:
+    - main
+    - merge_requests
+
+# ------------------------------------------------------------------
+# ARCHIVE STAGE
+# ------------------------------------------------------------------
+
+archive:release:
+  stage: archive
+  script:
+    - echo "Packaging research artifacts..."
+    - mkdir -p dist
+    - cp README.md dist/ 2>/dev/null || true
+    - cp CHANGELOG.md dist/ 2>/dev/null || true
+    - cp AUTHORS.md dist/ 2>/dev/null || true
+    - cp CITATION.cff dist/ 2>/dev/null || true
+    - cp VERSION dist/ 2>/dev/null || true
+    - cp LICENSE dist/ 2>/dev/null || true
+    - if [ -d docs ]; then cp -r docs/* dist/ 2>/dev/null || true; fi
+    - if [ -d RESEARCH_PAPER ]; then cp -r RESEARCH_PAPER/* dist/ 2>/dev/null || true; fi
+    - ls -la dist/
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 90 days
+  only:
+    - tags
+
+pages:
+  stage: archive
+  script:
+    - echo "Building project pages..."
+    - mkdir -p public
+    - cp README.md public/index.md 2>/dev/null || echo "# OSCA" > public/index.md
+    - cp CITATION.cff public/ 2>/dev/null || true
+    - if [ -d docs ]; then cp -r docs/* public/ 2>/dev/null || true; fi
+    - ls -la public/
+  artifacts:
+    paths:
+      - public
+  only:
+    - main

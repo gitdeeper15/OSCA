@@ -1,0 +1,41 @@
+cff-version: 1.2.0
+title: "OSCA: Origin, Semantic, and Consequence Authority"
+message: "If you use this research or implementation, please cite as below."
+type: software
+version: "0.1.0-research-draft"
+date-released: "2026-11-01"
+license: MIT
+abstract: |
+  OSCA (Origin, Semantic, and Consequence Authority) is a multi-tier
+  authorization architecture for autonomous AI agents. It separates
+  authority into three independently verifiable tiers — origin, semantic,
+  and consequence — and binds them atomically at execution time. Every
+  authorized action carries an auditable decision trace from origin
+  through consequence.
+
+  The project spans six intersecting research domains: computer science
+  and software engineering, applied mathematics and numerical computing,
+  cybersecurity and systems theory, computational physics, quantum
+  computing, and artificial intelligence and autonomous systems.
+
+  No empirical data has been collected at the time of this release.
+keywords:
+  - multi-tier authorization
+  - autonomous agents
+  - ai governance
+  - execution binding
+  - decision traceability
+  - semantic governance
+  - security
+authors:
+  - family-names: "Baladi"
+    given-names: "Samir"
+    email: "gitdeeper@gmail.com"
+    orcid: "https://orcid.org/0009-0003-8903-0029"
+    affiliation: "Ronin Institute / Rite of Renaissance"
+repository-code: "TBD"
+url: "https://doi.org/10.17605/OSF.IO/5EQC9"
+
+identifiers:
+  - type: doi
+    value: "10.6084/m9.figshare.34884411"
